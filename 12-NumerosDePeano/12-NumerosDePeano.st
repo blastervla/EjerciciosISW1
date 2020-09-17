@@ -19,13 +19,22 @@ I class
 + unNumeroDePeano 
 	^unNumeroDePeano next.! !
 
-!I class methodsFor: 'operaciones' stamp: 'VP 9/14/2020 21:56:03'!
+!I class methodsFor: 'operaciones' stamp: 'VP 9/17/2020 17:14:02'!
 - unNumeroDePeano 
-	^self.! !
+	self error:self descripcionDeErrorDeNumerosNegativosNoSoportados.! !
 
-!I class methodsFor: 'operaciones' stamp: 'VP 9/14/2020 21:56:19'!
-/ unNumeroDePeano 
-	^self.! !
+!I class methodsFor: 'operaciones' stamp: 'VP 9/17/2020 17:17:37'!
+/ unNumeroDePeano
+	unNumeroDePeano = self ifTrue: [ ^self ].
+	^self error:self descripcionDeErrorDeNoSePuedeDividirPorUnNumeroMayor.! !
+
+!I class methodsFor: 'operaciones' stamp: 'VP 9/17/2020 17:15:52'!
+descripcionDeErrorDeNoSePuedeDividirPorUnNumeroMayor
+	^'No se puede dividir por un número mayor'.! !
+
+!I class methodsFor: 'operaciones' stamp: 'VP 9/17/2020 17:14:09'!
+descripcionDeErrorDeNumerosNegativosNoSoportados
+	^'No se puede tener números negativos'.! !
 
 !I class methodsFor: 'operaciones' stamp: 'VP 9/14/2020 21:55:44'!
 next
@@ -61,8 +70,9 @@ II class
 - unNumeroDePeano 
 	^self parent.! !
 
-!II class methodsFor: 'operaciones' stamp: 'VP 9/14/2020 22:44:07'!
-/ unNumeroDePeano 
+!II class methodsFor: 'operaciones' stamp: 'VP 9/17/2020 17:11:44'!
+/ unNumeroDePeano
+	unNumeroDePeano = I ifTrue: [ ^self ].
 	^self parent.! !
 
 !II class methodsFor: 'operaciones' stamp: 'VP 9/14/2020 21:59:22'!
@@ -92,8 +102,9 @@ III class
 	unNumeroDePeano = I ifTrue: [ ^self previous ].
 	^self previous - unNumeroDePeano previous.! !
 
-!III class methodsFor: 'operaciones' stamp: 'VP 9/14/2020 22:43:51'!
-/ unNumeroDePeano 
+!III class methodsFor: 'operaciones' stamp: 'VP 9/17/2020 17:17:05'!
+/ unNumeroDePeano
+	unNumeroDePeano = I ifTrue: [ ^self ].
 	^(self - unNumeroDePeano / unNumeroDePeano) next.! !
 
 
