@@ -1,11 +1,11 @@
-!classDefinition: #AccountTest category: 'Portfolio-Solucion'!
-TestCase subclass: #AccountTest
-	instanceVariableNames: ''
+!classDefinition: #AccountReportTest category: 'Portfolio-Solucion'!
+TestCase subclass: #AccountReportTest
+	instanceVariableNames: 'accountEmily accountJorge accountCharlie portfolioPadreDeCharlie'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Portfolio-Solucion'!
 
-!AccountTest methodsFor: 'tests -- transfer net' stamp: 'VP 11/9/2020 22:00:17'!
+!AccountReportTest methodsFor: 'tests -- transfer net' stamp: 'VP 11/9/2020 22:00:17'!
 test07EmptyAcountTransferNetIsZero
 
 	| account transferNet |
@@ -16,7 +16,7 @@ test07EmptyAcountTransferNetIsZero
 	
 	self assert: 0 equals: transferNet.! !
 
-!AccountTest methodsFor: 'tests -- transfer net' stamp: 'VP 11/12/2020 21:14:01'!
+!AccountReportTest methodsFor: 'tests -- transfer net' stamp: 'VP 11/12/2020 21:14:01'!
 test08SingleTransferAccountWithPositiveTransferNet
 
 	| account1 account2 transferNet |
@@ -30,7 +30,7 @@ test08SingleTransferAccountWithPositiveTransferNet
 	
 	self assert: 30 equals: transferNet.! !
 
-!AccountTest methodsFor: 'tests -- transfer net' stamp: 'VP 11/12/2020 21:14:14'!
+!AccountReportTest methodsFor: 'tests -- transfer net' stamp: 'VP 11/12/2020 21:14:14'!
 test09SingleTransferAccountWithNegativeTransferNet
 
 	| account1 account2 transferNet |
@@ -44,7 +44,7 @@ test09SingleTransferAccountWithNegativeTransferNet
 	
 	self assert: -30 equals: transferNet.! !
 
-!AccountTest methodsFor: 'tests -- transfer net' stamp: 'VP 11/12/2020 21:18:52'!
+!AccountReportTest methodsFor: 'tests -- transfer net' stamp: 'VP 11/12/2020 21:18:52'!
 test10MultipleTransfersAccountTransferNet
 
 	| account1 account2 transferNet |
@@ -61,7 +61,82 @@ test10MultipleTransfersAccountTransferNet
 	self assert: 5 equals: transferNet.! !
 
 
-!AccountTest methodsFor: 'tests -- account summary' stamp: 'VP 11/9/2020 21:38:02'!
+!AccountReportTest methodsFor: 'tests -- account tree' stamp: 'VP 11/15/2020 12:34:37'!
+test11EmptyPortfolioTree
+
+	| rootPortfolio tree |
+	
+	rootPortfolio := Portfolio named: 'Root Portfolio'.
+	
+	tree := (AccountTree for: rootPortfolio) tree.
+	
+	self assertCollection: {
+		'Root Portfolio'.
+	} equals: tree.! !
+
+!AccountReportTest methodsFor: 'tests -- account tree' stamp: 'VP 11/15/2020 12:34:37'!
+test12SingleDepthLevelPortfolioTree
+
+	| rootPortfolio tree |
+	
+	rootPortfolio := Portfolio named: 'Root Portfolio' with: accountEmily with: accountJorge.
+	
+	tree := (AccountTree for: rootPortfolio) tree.
+	
+	self assertCollection: {
+		'Root Portfolio'.
+			AccountTree indent: accountEmily name byLevel: 1.
+			AccountTree indent: accountJorge name byLevel: 1.
+	} equals: tree.! !
+
+!AccountReportTest methodsFor: 'tests -- account tree' stamp: 'VP 11/15/2020 12:34:37'!
+test13MultipleDepthLevelPortfolioTree
+
+	| rootPortfolio tree |
+	
+	rootPortfolio := Portfolio named: 'Root Portfolio' with: accountEmily.
+	rootPortfolio add: portfolioPadreDeCharlie.
+	rootPortfolio add: accountJorge.
+	
+	tree := (AccountTree for: rootPortfolio) tree.
+	
+	self assertCollection: {
+		'Root Portfolio'.
+			AccountTree indent: accountEmily name byLevel: 1.
+			AccountTree indent: portfolioPadreDeCharlie name byLevel: 1.
+				AccountTree indent: accountCharlie name byLevel: 2.
+			AccountTree indent: accountJorge name byLevel: 1.
+	} equals: tree.! !
+
+!AccountReportTest methodsFor: 'tests -- account tree' stamp: 'VP 11/15/2020 12:34:37'!
+test14UnnamedPortfolioInTreeHasDefaultName
+
+	| rootPortfolio tree |
+	
+	rootPortfolio := Portfolio new.
+	
+	tree := (AccountTree for: rootPortfolio) tree.
+	
+	self assertCollection: {
+		'Un Portfolio'.
+	} equals: tree.! !
+
+!AccountReportTest methodsFor: 'tests -- account tree' stamp: 'VP 11/15/2020 12:34:37'!
+test15UnnamedAccountInTreeHasDefaultName
+
+	| rootPortfolio tree |
+	
+	rootPortfolio := Portfolio named: 'Root Portfolio' with: ReceptiveAccount new.
+	
+	tree := (AccountTree for: rootPortfolio) tree.
+	
+	self assertCollection: {
+		'Root Portfolio'.
+			AccountTree indent: 'Una Cuenta Corriente' byLevel: 1.
+	} equals: tree.! !
+
+
+!AccountReportTest methodsFor: 'tests -- account summary' stamp: 'VP 11/15/2020 12:42:28'!
 test01EmptyAccountSummary
 
 	| account summaryCollection |
@@ -70,10 +145,11 @@ test01EmptyAccountSummary
 	
 	summaryCollection := (AccountSummary for: account) asCollection.
 	
-	self assert: 1 equals: summaryCollection size.
-	self assert: 'Balance = 0' equals: (summaryCollection at: 1).! !
+	self assertCollection: {
+		AccountSummary balanceReportMessageFor: 0.
+	} equals: summaryCollection.! !
 
-!AccountTest methodsFor: 'tests -- account summary' stamp: 'VP 11/9/2020 21:59:41'!
+!AccountReportTest methodsFor: 'tests -- account summary' stamp: 'VP 11/15/2020 12:48:34'!
 test02AccountWithSingleDepositSummary
 
 	| account summaryCollection |
@@ -84,11 +160,12 @@ test02AccountWithSingleDepositSummary
 	
 	summaryCollection := (AccountSummary for: account) asCollection.
 	
-	self assert: 1 + 1 equals: summaryCollection size.
-	self assert: 'Depósito por 100' equals: (summaryCollection at: 1).
-	self assert: 'Balance = 100' equals: (summaryCollection at: 2).! !
+	self assertCollection: {
+		AccountSummary summaryMessageForDepositValue: 100.
+		AccountSummary balanceReportMessageFor: 100.
+	} equals: summaryCollection.! !
 
-!AccountTest methodsFor: 'tests -- account summary' stamp: 'VP 11/9/2020 22:03:03'!
+!AccountReportTest methodsFor: 'tests -- account summary' stamp: 'VP 11/15/2020 12:48:58'!
 test03AccountWithSingleWithdrawSummary
 
 	| account summaryCollection |
@@ -99,11 +176,12 @@ test03AccountWithSingleWithdrawSummary
 	
 	summaryCollection := (AccountSummary for: account) asCollection.
 	
-	self assert: 1 + 1 equals: summaryCollection size.
-	self assert: 'Extracción por 100' equals: (summaryCollection at: 1).
-	self assert: 'Balance = -100' equals: (summaryCollection at: 2).! !
+	self assertCollection: {
+		AccountSummary summaryMessageForWithdrawValue: 100.
+		AccountSummary balanceReportMessageFor: -100.
+	} equals: summaryCollection.! !
 
-!AccountTest methodsFor: 'tests -- account summary' stamp: 'VP 11/9/2020 22:01:52'!
+!AccountReportTest methodsFor: 'tests -- account summary' stamp: 'VP 11/15/2020 12:49:52'!
 test04AccountWithSingleInboundTransferSummary
 
 	| account1 account2 summaryCollection |
@@ -115,11 +193,12 @@ test04AccountWithSingleInboundTransferSummary
 	
 	summaryCollection := (AccountSummary for: account1) asCollection.
 	
-	self assert: 1 + 1 equals: summaryCollection size.
-	self assert: 'Entrada por transferencia de 100' equals: (summaryCollection at: 1).
-	self assert: 'Balance = 100' equals: (summaryCollection at: 2).! !
+	self assertCollection: {
+		AccountSummary summaryMessageForTransferDepositValue: 100.
+		AccountSummary balanceReportMessageFor: 100.
+	} equals: summaryCollection.! !
 
-!AccountTest methodsFor: 'tests -- account summary' stamp: 'VP 11/9/2020 22:02:53'!
+!AccountReportTest methodsFor: 'tests -- account summary' stamp: 'VP 11/15/2020 12:50:30'!
 test05AccountWithSingleOutboundTransferSummary
 
 	| account1 account2 summaryCollection |
@@ -131,11 +210,12 @@ test05AccountWithSingleOutboundTransferSummary
 	
 	summaryCollection := (AccountSummary for: account2) asCollection.
 	
-	self assert: 1 + 1 equals: summaryCollection size.
-	self assert: 'Salida por transferencia de 100' equals: (summaryCollection at: 1).
-	self assert: 'Balance = -100' equals: (summaryCollection at: 2).! !
+	self assertCollection: {
+		AccountSummary summaryMessageForTransferWithdrawValue: 100.
+		AccountSummary balanceReportMessageFor: -100.
+	} equals: summaryCollection.! !
 
-!AccountTest methodsFor: 'tests -- account summary' stamp: 'VP 11/9/2020 22:00:14'!
+!AccountReportTest methodsFor: 'tests -- account summary' stamp: 'VP 11/15/2020 12:52:41'!
 test06PortfolioWithTransactionsSummary
 
 	| portfolio account1 account2 summaryCollection |
@@ -153,12 +233,97 @@ test06PortfolioWithTransactionsSummary
 	
 	summaryCollection := (AccountSummary for: portfolio) asCollection.
 	
-	self assert: 4 + 1 equals: summaryCollection size.
-	self assert: 'Depósito por 100' equals: (summaryCollection at: 1).
-	self assert: 'Extracción por 50' equals: (summaryCollection at: 2).
-	self assert: 'Salida por transferencia de 20' equals: (summaryCollection at: 3).
-	self assert: 'Entrada por transferencia de 30' equals: (summaryCollection at: 4).
-	self assert: 'Balance = 60' equals: (summaryCollection at: 5).! !
+	self assertCollection: {
+		AccountSummary summaryMessageForDepositValue: 100.
+		AccountSummary summaryMessageForWithdrawValue: 50.
+		AccountSummary summaryMessageForTransferWithdrawValue: 20.
+		AccountSummary summaryMessageForTransferDepositValue: 30.
+		AccountSummary balanceReportMessageFor: 60.
+	} equals: summaryCollection.! !
+
+
+!AccountReportTest methodsFor: 'tests -- account summary tree' stamp: 'VP 11/15/2020 12:46:46'!
+test16EmptyPortfolioSummaryTree
+
+	| rootPortfolio tree |
+	
+	rootPortfolio := Portfolio named: 'Root Portfolio'.
+	
+	tree := (AccountSummaryTree for: rootPortfolio) tree.
+	
+	self assertCollection: {
+		'Root Portfolio'.
+			AccountTree indent: (AccountSummary balanceReportMessageFor: 0) byLevel: 1.
+	} equals: tree.! !
+
+!AccountReportTest methodsFor: 'tests -- account summary tree' stamp: 'VP 11/15/2020 12:52:54'!
+test17SingleDepthLevelPortfolioSummaryTree
+
+	| rootPortfolio tree |
+	
+	rootPortfolio := Portfolio named: 'Root Portfolio' with: accountEmily with: accountJorge.
+	
+	tree := (AccountSummaryTree for: rootPortfolio) tree.
+	
+	self assertCollection: {
+		'Root Portfolio'.
+			AccountTree indent: accountEmily name byLevel: 1.
+				AccountTree indent: (AccountSummary summaryMessageForDepositValue: 100) byLevel: 2.
+				AccountTree indent: (AccountSummary balanceReportMessageFor: 100) byLevel: 2.
+			AccountTree indent: accountJorge name byLevel: 1.
+				AccountTree indent: (AccountSummary summaryMessageForWithdrawValue: 30) byLevel: 2.
+				AccountTree indent: (AccountSummary balanceReportMessageFor: -30) byLevel: 2.
+			AccountTree indent: (AccountSummary balanceReportMessageFor: 70) byLevel: 1.
+	} equals: tree.! !
+
+!AccountReportTest methodsFor: 'tests -- account summary tree' stamp: 'VP 11/15/2020 12:53:03'!
+test18MultipleDepthLevelPortfolioSummaryTree
+
+	| rootPortfolio tree |
+	
+	rootPortfolio := Portfolio named: 'Root Portfolio' with: accountEmily.
+	rootPortfolio add: portfolioPadreDeCharlie.
+	rootPortfolio add: accountJorge.
+	
+	tree := (AccountSummaryTree for: rootPortfolio) tree.
+	
+	self assertCollection: {
+		'Root Portfolio'.
+			AccountTree indent: accountEmily name byLevel: 1.
+				AccountTree indent: (AccountSummary summaryMessageForDepositValue: 100) byLevel: 2.
+				AccountTree indent: (AccountSummary balanceReportMessageFor: 100) byLevel: 2.
+			AccountTree indent: portfolioPadreDeCharlie name byLevel: 1.
+				AccountTree indent: accountCharlie name byLevel: 2.
+					AccountTree indent: (AccountSummary summaryMessageForDepositValue: 60) byLevel: 3.
+					AccountTree indent: (AccountSummary balanceReportMessageFor: 60) byLevel: 3.
+				AccountTree indent: (AccountSummary balanceReportMessageFor: 60) byLevel: 2.
+			AccountTree indent: accountJorge name byLevel: 1.
+				AccountTree indent: (AccountSummary summaryMessageForWithdrawValue: 30) byLevel: 2.
+				AccountTree indent: (AccountSummary balanceReportMessageFor: -30) byLevel: 2.
+			AccountTree indent: (AccountSummary balanceReportMessageFor: 130) byLevel: 1.
+	} equals: tree.! !
+
+
+!AccountReportTest methodsFor: 'setUp/tearDown' stamp: 'VP 11/15/2020 12:15:10'!
+setUp
+
+	accountEmily := ReceptiveAccount named: 'Cuenta de Emily'.
+	Deposit register: 100 on: accountEmily.
+	accountJorge := ReceptiveAccount named: 'Cuenta de Jorge'.
+	Withdraw register: 30 on: accountJorge.
+	accountCharlie := ReceptiveAccount named: 'Cuenta de Charlie'.
+	Deposit register: 60 on: accountCharlie.
+	
+	portfolioPadreDeCharlie := Portfolio named: 'Portfolio del Padre de Charlie' with: accountCharlie.! !
+
+
+!AccountReportTest methodsFor: 'assertions' stamp: 'VP 11/15/2020 12:35:10'!
+assertCollection: anExpectedCollection equals: aCollection
+
+	self assert: anExpectedCollection size equals: aCollection size.
+	(1 to: anExpectedCollection size) do: [ :aCollectionIndex |
+		self assert: (anExpectedCollection at: aCollectionIndex) equals: (aCollection at: aCollectionIndex).
+	].! !
 
 
 !classDefinition: #PortfolioTest category: 'Portfolio-Solucion'!
@@ -562,7 +727,7 @@ test13SelfTransfersAreProhibited
 
 !classDefinition: #Account category: 'Portfolio-Solucion'!
 Object subclass: #Account
-	instanceVariableNames: ''
+	instanceVariableNames: 'name'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Portfolio-Solucion'!
@@ -589,6 +754,16 @@ addTransactionsTo: aCollectionOfTransactions
 
 	self subclassResponsibility ! !
 
+!Account methodsFor: 'transactions' stamp: 'VP 11/15/2020 11:20:27'!
+transactionAmount
+
+	self subclassResponsibility ! !
+
+!Account methodsFor: 'transactions' stamp: 'VP 11/15/2020 11:20:56'!
+transactionNumbered: aTransactionNumber
+
+	self subclassResponsibility ! !
+
 !Account methodsFor: 'transactions' stamp: 'HAW 5/25/2019 12:23:15'!
 transactions
 
@@ -600,6 +775,33 @@ addedTo: aPortfolio
 
 	self subclassResponsibility ! !
 
+
+!Account methodsFor: 'initialization' stamp: 'VP 11/14/2020 10:47:42'!
+initializeNamed: aName 
+	name := aName.! !
+
+
+!Account methodsFor: 'accessing' stamp: 'VP 11/14/2020 11:11:07'!
+name
+
+	^name.! !
+
+
+!Account methodsFor: 'report' stamp: 'VP 11/14/2020 11:16:47'!
+affectReport: aReport
+
+	self subclassResponsibility ! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'Account class' category: 'Portfolio-Solucion'!
+Account class
+	instanceVariableNames: ''!
+
+!Account class methodsFor: 'instance creation' stamp: 'VP 11/14/2020 10:47:16'!
+named: aName 
+	^self new initializeNamed: aName! !
+
 
 !classDefinition: #Portfolio category: 'Portfolio-Solucion'!
 Account subclass: #Portfolio
@@ -607,6 +809,11 @@ Account subclass: #Portfolio
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Portfolio-Solucion'!
+
+!Portfolio methodsFor: 'accounts management' stamp: 'VP 11/15/2020 11:44:19'!
+accountNumbered: anAccountNumber
+	
+	^accounts at: anAccountNumber.! !
 
 !Portfolio methodsFor: 'accounts management' stamp: 'HAW 5/25/2019 11:49:20'!
 accountsIncludes: anAccount
@@ -643,11 +850,12 @@ rootParents
 	^ rootParents! !
 
 
-!Portfolio methodsFor: 'initialization' stamp: 'HAW 5/25/2019 12:03:18'!
+!Portfolio methodsFor: 'initialization' stamp: 'VP 11/15/2020 11:32:55'!
 initialize
 
 	accounts := OrderedCollection new.
-	parents := OrderedCollection new.! !
+	parents := OrderedCollection new.
+	name := 'Un Portfolio'.! !
 
 
 !Portfolio methodsFor: 'balance' stamp: 'HAW 5/25/2019 11:19:36'!
@@ -660,6 +868,16 @@ balance
 addTransactionsTo: aCollectionOfTransactions
 
 	accounts do: [ :anAccount | anAccount addTransactionsTo: aCollectionOfTransactions ]! !
+
+!Portfolio methodsFor: 'transactions' stamp: 'VP 11/15/2020 11:21:56'!
+transactionAmount
+
+	^self transactions size.! !
+
+!Portfolio methodsFor: 'transactions' stamp: 'VP 11/15/2020 11:21:43'!
+transactionNumbered: aTransactionNumber
+
+	^self transactions at: aTransactionNumber.! !
 
 !Portfolio methodsFor: 'transactions' stamp: 'HAW 5/25/2019 11:38:32'!
 transactions
@@ -712,31 +930,48 @@ signalCanNotAddAccount
 	
 	self error: self class canNotAddAccountErrorMessage! !
 
+
+!Portfolio methodsFor: 'report' stamp: 'VP 11/15/2020 11:44:46'!
+affectReport: aReport
+
+	aReport affectForPortfolio: self! !
+
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
 !classDefinition: 'Portfolio class' category: 'Portfolio-Solucion'!
 Portfolio class
 	instanceVariableNames: ''!
 
-!Portfolio class methodsFor: 'as yet unclassified' stamp: 'NR 11/9/2020 06:01:26'!
-canNotAddAccountErrorMessage
+!Portfolio class methodsFor: 'instance creation' stamp: 'VP 11/14/2020 11:02:58'!
+named: aName with: anAccount 
 	
-	^'Can not add repeated account to a portfolio!!'! !
+	^(self named: aName) add: anAccount.! !
 
-!Portfolio class methodsFor: 'as yet unclassified' stamp: 'HAW 5/25/2019 11:18:21'!
+!Portfolio class methodsFor: 'instance creation' stamp: 'VP 11/14/2020 11:02:52'!
+named: aName with: anAccount with: anotherAccount
+	
+	^((self named: aName) add: anAccount) add: anotherAccount.! !
+
+!Portfolio class methodsFor: 'instance creation' stamp: 'HAW 5/25/2019 11:18:21'!
 with: anAccount
 
 	^self new 
 		add: anAccount;
 		yourself! !
 
-!Portfolio class methodsFor: 'as yet unclassified' stamp: 'HAW 5/25/2019 11:23:59'!
+!Portfolio class methodsFor: 'instance creation' stamp: 'HAW 5/25/2019 11:23:59'!
 with: anAccount with: anotherAccount
 
 	^self new 
 		add: anAccount;
 		add: anotherAccount;
 		yourself! !
+
+
+!Portfolio class methodsFor: 'error message -- private' stamp: 'NR 11/9/2020 06:01:26'!
+canNotAddAccountErrorMessage
+	
+	^'Can not add repeated account to a portfolio!!'! !
 
 
 !classDefinition: #ReceptiveAccount category: 'Portfolio-Solucion'!
@@ -746,11 +981,12 @@ Account subclass: #ReceptiveAccount
 	poolDictionaries: ''
 	category: 'Portfolio-Solucion'!
 
-!ReceptiveAccount methodsFor: 'initialization' stamp: 'HernanWilkinson 7/13/2011 18:35'!
+!ReceptiveAccount methodsFor: 'initialization' stamp: 'VP 11/15/2020 11:30:25'!
 initialize
 
 	super initialize.
-	transactions := OrderedCollection new.! !
+	transactions := OrderedCollection new.
+	name := 'Una Cuenta Corriente'.! !
 
 
 !ReceptiveAccount methodsFor: 'transactions' stamp: 'NR 11/9/2020 05:56:36'!
@@ -763,6 +999,16 @@ register: aTransaction
 
 	transactions add: aTransaction 
 ! !
+
+!ReceptiveAccount methodsFor: 'transactions' stamp: 'VP 11/15/2020 11:22:07'!
+transactionAmount
+
+	^transactions size. ! !
+
+!ReceptiveAccount methodsFor: 'transactions' stamp: 'VP 11/15/2020 11:21:32'!
+transactionNumbered: aTransactionNumber
+
+	^transactions at: aTransactionNumber.! !
 
 !ReceptiveAccount methodsFor: 'transactions' stamp: 'HernanWilkinson 7/13/2011 18:37'!
 transactions 
@@ -795,6 +1041,12 @@ addedTo: aPortfolio
 	
 	! !
 
+
+!ReceptiveAccount methodsFor: 'report' stamp: 'VP 11/14/2020 11:18:06'!
+affectReport: aReport
+
+	aReport affectForReceptiveAccount: self.! !
+
 
 !classDefinition: #AccountReport category: 'Portfolio-Solucion'!
 Object subclass: #AccountReport
@@ -823,11 +1075,11 @@ affectForWithdraw: aWithdraw
 
 	self subclassResponsibility.! !
 
-!AccountReport methodsFor: 'report building -- private' stamp: 'VP 11/12/2020 21:42:52'!
-buildReportFor: anAccount
+!AccountReport methodsFor: 'report building -- private' stamp: 'VP 11/15/2020 11:23:10'!
+buildTransactionReportFor: anAccount
 
-	anAccount transactions do: [ :aTransaction |
-		aTransaction affectReport: self.
+	(1 to: anAccount transactionAmount) do: [ :aTransactionNumber |
+		(anAccount transactionNumbered: aTransactionNumber) affectReport: self.
 	].! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
@@ -841,6 +1093,7 @@ for: anAccount
 	
 	^self new initializeFor: anAccount.! !
 
+
 
 !classDefinition: #AccountSummary category: 'Portfolio-Solucion'!
 AccountReport subclass: #AccountSummary
@@ -849,11 +1102,11 @@ AccountReport subclass: #AccountSummary
 	poolDictionaries: ''
 	category: 'Portfolio-Solucion'!
 
-!AccountSummary methodsFor: 'initialization' stamp: 'VP 11/12/2020 21:42:52'!
+!AccountSummary methodsFor: 'initialization' stamp: 'VP 11/14/2020 11:16:21'!
 initializeFor: anAccount
 
 	summaryCollection := self basicAccountReportFor: anAccount.
-	self buildReportFor: anAccount.! !
+	self buildTransactionReportFor: anAccount.! !
 
 
 !AccountSummary methodsFor: 'accessing' stamp: 'VP 11/9/2020 21:33:02'!
@@ -862,10 +1115,10 @@ asCollection
 	^summaryCollection copy.! !
 
 
-!AccountSummary methodsFor: 'initialization -- private' stamp: 'VP 11/9/2020 21:35:48'!
+!AccountSummary methodsFor: 'initialization -- private' stamp: 'VP 11/15/2020 12:43:07'!
 basicAccountReportFor: anAccount
 
-	^OrderedCollection with: (self class balanceReportMessageFor: anAccount)! !
+	^OrderedCollection with: (self class balanceReportMessageFor: anAccount balance)! !
 
 
 !AccountSummary methodsFor: 'report building -- private' stamp: 'VP 11/12/2020 21:31:28'!
@@ -873,25 +1126,25 @@ addTransactionDescription: aTransactionDescription
 
 	summaryCollection addFirst: aTransactionDescription.! !
 
-!AccountSummary methodsFor: 'report building -- private' stamp: 'VP 11/12/2020 21:31:42'!
+!AccountSummary methodsFor: 'report building -- private' stamp: 'VP 11/15/2020 12:41:49'!
 affectForDeposit: aDeposit
 
-	self addTransactionDescription: 'Depósito por ', aDeposit value asString.! !
+	self addTransactionDescription: (self class summaryMessageForDepositValue: aDeposit value).! !
 
-!AccountSummary methodsFor: 'report building -- private' stamp: 'VP 11/12/2020 21:33:07'!
+!AccountSummary methodsFor: 'report building -- private' stamp: 'VP 11/15/2020 12:41:54'!
 affectForTransferDeposit: aTransferDeposit
 
-	self addTransactionDescription: 'Entrada por transferencia de ', aTransferDeposit value asString! !
+	self addTransactionDescription: (self class summaryMessageForTransferDepositValue: aTransferDeposit value)! !
 
-!AccountSummary methodsFor: 'report building -- private' stamp: 'VP 11/12/2020 21:33:19'!
+!AccountSummary methodsFor: 'report building -- private' stamp: 'VP 11/15/2020 12:41:59'!
 affectForTransferWithdraw: aTransferWithdraw
 
-	self addTransactionDescription: 'Salida por transferencia de ', aTransferWithdraw value asString! !
+	self addTransactionDescription: (self class summaryMessageForTransferWithdrawValue: aTransferWithdraw value)! !
 
-!AccountSummary methodsFor: 'report building -- private' stamp: 'VP 11/12/2020 21:32:05'!
+!AccountSummary methodsFor: 'report building -- private' stamp: 'VP 11/15/2020 12:42:05'!
 affectForWithdraw: aWithdraw
 
-	self addTransactionDescription: 'Extracción por ', aWithdraw value asString.! !
+	self addTransactionDescription: (self class summaryMessageForWithdrawValue: aWithdraw value).! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -899,10 +1152,118 @@ affectForWithdraw: aWithdraw
 AccountSummary class
 	instanceVariableNames: ''!
 
-!AccountSummary class methodsFor: 'report messages -- private' stamp: 'VP 11/9/2020 21:20:01'!
-balanceReportMessageFor: anAccount
+!AccountSummary class methodsFor: 'report messages -- private' stamp: 'VP 11/15/2020 12:42:49'!
+balanceReportMessageFor: aBalance
 
-	^ 'Balance = ', anAccount balance asString! !
+	^ 'Balance = ', aBalance asString! !
+
+!AccountSummary class methodsFor: 'report messages -- private' stamp: 'VP 11/15/2020 12:40:59'!
+summaryMessageForDepositValue: aDepositValue
+
+	^ 'Depósito por ', aDepositValue asString! !
+
+!AccountSummary class methodsFor: 'report messages -- private' stamp: 'VP 11/15/2020 12:41:23'!
+summaryMessageForTransferDepositValue: aTransferDepositValue
+
+	^ 'Entrada por transferencia de ', aTransferDepositValue asString! !
+
+!AccountSummary class methodsFor: 'report messages -- private' stamp: 'VP 11/15/2020 12:41:30'!
+summaryMessageForTransferWithdrawValue: aTransferWithdrawValue
+
+	^ 'Salida por transferencia de ', aTransferWithdrawValue asString! !
+
+!AccountSummary class methodsFor: 'report messages -- private' stamp: 'VP 11/15/2020 12:41:38'!
+summaryMessageForWithdrawValue: aWithdrawValue
+
+	^ 'Extracción por ', aWithdrawValue asString! !
+
+
+!classDefinition: #AccountTree category: 'Portfolio-Solucion'!
+AccountReport subclass: #AccountTree
+	instanceVariableNames: 'tree indentLevel'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Portfolio-Solucion'!
+
+!AccountTree methodsFor: 'initialization' stamp: 'VP 11/14/2020 11:38:47'!
+initializeFor: aPortfolio
+ 
+	tree := OrderedCollection new.
+	indentLevel := 0.
+	
+	aPortfolio affectReport: self.! !
+
+
+!AccountTree methodsFor: 'accessing' stamp: 'VP 11/14/2020 11:41:20'!
+tree
+	
+	^tree.
+	! !
+
+
+!AccountTree methodsFor: 'report building -- private' stamp: 'VP 11/15/2020 11:44:33'!
+affectForPortfolio: aPortfolio
+
+	tree add: (AccountTree indent: aPortfolio name byLevel: indentLevel).
+	(1 to: aPortfolio accountsSize) do: [ :anAccountNumber |
+		indentLevel := indentLevel + 1.
+		(aPortfolio accountNumbered: anAccountNumber) affectReport: self.
+		indentLevel := indentLevel - 1.
+	].! !
+
+!AccountTree methodsFor: 'report building -- private' stamp: 'VP 11/14/2020 11:36:35'!
+affectForReceptiveAccount: aReceptiveAccount
+
+	tree add: (AccountTree indent: aReceptiveAccount name byLevel: indentLevel).! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'AccountTree class' category: 'Portfolio-Solucion'!
+AccountTree class
+	instanceVariableNames: ''!
+
+!AccountTree class methodsFor: 'report building -- private' stamp: 'VP 11/15/2020 11:40:00'!
+indent: aString byLevel: anIndentLevel 
+	
+	^(1 to: anIndentLevel) inject: aString into: [ :indentedString :indentLevel | '    ', indentedString ].! !
+
+
+!classDefinition: #AccountSummaryTree category: 'Portfolio-Solucion'!
+AccountTree subclass: #AccountSummaryTree
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Portfolio-Solucion'!
+
+!AccountSummaryTree methodsFor: 'report building -- private' stamp: 'VP 11/15/2020 12:17:35'!
+affectForPortfolio: aPortfolio
+
+	super affectForPortfolio: aPortfolio.
+	tree add: (AccountTree indent: (self balanceFor: aPortfolio) byLevel: indentLevel + 1).! !
+
+!AccountSummaryTree methodsFor: 'report building -- private' stamp: 'VP 11/15/2020 12:18:44'!
+affectForReceptiveAccount: aReceptiveAccount
+	
+	super affectForReceptiveAccount: aReceptiveAccount.
+	self addIndentedSummaryFor: aReceptiveAccount.! !
+
+
+!AccountSummaryTree methodsFor: 'summary -- private' stamp: 'VP 11/15/2020 12:18:39'!
+addIndentedSummaryFor: aReceptiveAccount
+
+	^ (self summaryFor: aReceptiveAccount) do: [ :aSummaryLine | 
+		tree add: (AccountTree indent: aSummaryLine byLevel: indentLevel + 1).
+	]! !
+
+!AccountSummaryTree methodsFor: 'summary -- private' stamp: 'VP 11/15/2020 12:45:03'!
+balanceFor: aPortfolio
+
+	^AccountSummary balanceReportMessageFor: aPortfolio balance.! !
+
+!AccountSummaryTree methodsFor: 'summary -- private' stamp: 'VP 11/15/2020 12:17:43'!
+summaryFor: aReceptiveAccount
+
+	^ (AccountSummary for: aReceptiveAccount) asCollection.! !
 
 
 !classDefinition: #TransferNet category: 'Portfolio-Solucion'!
@@ -912,11 +1273,11 @@ AccountReport subclass: #TransferNet
 	poolDictionaries: ''
 	category: 'Portfolio-Solucion'!
 
-!TransferNet methodsFor: 'initialization' stamp: 'VP 11/12/2020 21:43:08'!
+!TransferNet methodsFor: 'initialization' stamp: 'VP 11/14/2020 11:16:21'!
 initializeFor: anAccount
 
 	value := 0.
-	self buildReportFor: anAccount.! !
+	self buildTransactionReportFor: anAccount.! !
 
 
 !TransferNet methodsFor: 'accessing' stamp: 'VP 11/12/2020 21:35:57'!
