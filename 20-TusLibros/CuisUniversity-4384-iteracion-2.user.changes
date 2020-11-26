@@ -51870,3 +51870,242 @@ PASSED!
 
 !testRun: #CashierTest #test05CheckoutWithInvalidCreditCardFails stamp: 'VP 11/22/2020 17:45:06'!
 PASSED!
+
+----STARTUP---- (26 November 2020 12:38:54) as /Users/vpomsztein/Documents/Facu/ISW1/PracticaParcial/CuisUniversity-4384.image!
+
+!CreditCardTest methodsFor: 'tests' stamp: 'VP 11/26/2020 12:39:33'!
+test04CreditCardWithNonPositiveNumberCanNotBeCreated
+
+	self should: [ CreditCard withNumber: -1 expiration: expirationDate previous owner: '' ]
+		raise: Error
+		withExceptionDo: [ :anError |
+			self assert: CreditCard emptyNameErrorMessage equals: anError messageText.	
+		].! !
+!CreditCardTest methodsFor: 'tests' stamp: 'VP 11/26/2020 12:39:45' prior: 50904044!
+test04CreditCardWithNonPositiveNumberCanNotBeCreated
+
+	self should: [ CreditCard withNumber: -1 expiration: expirationDate previous owner: '' ]
+		raise: Error
+		withExceptionDo: [ :anError |
+			self assert: CreditCard invalidCardNumberErrorMessage equals: anError messageText.	
+		].! !
+
+!testRun: #CreditCardTest #test04CreditCardWithNonPositiveNumberCanNotBeCreated stamp: 'VP 11/26/2020 12:39:46'!
+ERROR!
+!CreditCard class methodsFor: 'error messages -- private' stamp: 'VP 11/26/2020 12:39:59'!
+invalidCardNumberErrorMessage
+	self shouldBeImplemented.! !
+!CreditCard class methodsFor: 'error messages -- private' stamp: 'VP 11/26/2020 12:40:17' prior: 50904072!
+invalidCardNumberErrorMessage
+	
+	^'Can not create credit card with the given number'.! !
+
+!testRun: #CreditCardTest #test04CreditCardWithNonPositiveNumberCanNotBeCreated stamp: 'VP 11/26/2020 12:40:19'!
+FAILURE!
+!CreditCard class methodsFor: 'instance creation' stamp: 'VP 11/26/2020 12:41:17'!
+verifyValidCreditCardNumber: aCardNumber
+
+	^ aCardNumber < 0 ifTrue: [ self error: self invalidCardNumberErrorMessage ].! !
+!CreditCard class methodsFor: 'instance creation' stamp: 'VP 11/26/2020 12:41:20' prior: 50904088!
+verifyValidCreditCardNumber: aCardNumber
+
+	aCardNumber < 0 ifTrue: [ self error: self invalidCardNumberErrorMessage ].! !
+
+!testRun: #CreditCardTest #test01CreditCardWithFutureDateCorrectlyStoresCardDataAndIsNotExpired stamp: 'VP 11/26/2020 12:41:27'!
+PASSED!
+
+!testRun: #CreditCardTest #test02CreditCardWithPastExpirationDateIsExpired stamp: 'VP 11/26/2020 12:41:27'!
+PASSED!
+
+!testRun: #CreditCardTest #test03CreditCardWithEmptyOwnerCanNotBeCreated stamp: 'VP 11/26/2020 12:41:27'!
+PASSED!
+
+!testRun: #CreditCardTest #test04CreditCardWithNonPositiveNumberCanNotBeCreated stamp: 'VP 11/26/2020 12:41:27'!
+FAILURE!
+
+!testRun: #CreditCardTest #test04CreditCardWithNonPositiveNumberCanNotBeCreated stamp: 'VP 11/26/2020 12:41:27'!
+FAILURE!
+!CreditCardTest methodsFor: 'tests' stamp: 'VP 11/26/2020 12:41:40' prior: 50904056!
+test04CreditCardWithNonPositiveNumberCanNotBeCreated
+
+	self should: [ CreditCard withNumber: -1 expiration: expirationDate previous owner: owner ]
+		raise: Error
+		withExceptionDo: [ :anError |
+			self assert: CreditCard invalidCardNumberErrorMessage equals: anError messageText.	
+		].! !
+
+!testRun: #CreditCardTest #test04CreditCardWithNonPositiveNumberCanNotBeCreated stamp: 'VP 11/26/2020 12:41:41'!
+FAILURE!
+!CreditCard class methodsFor: 'instance creation' stamp: 'VP 11/26/2020 12:42:11' prior: 50901826!
+withNumber: aNumber expiration: anExpirationDate owner: anOwner
+	
+	self verifyOwnerNotEmpty: anOwner.
+	self verifyValidCreditCardNumber: 	aNumber.
+
+	^self new initializeWithNumber: aNumber expiration: anExpirationDate owner: anOwner.! !
+
+!testRun: #CreditCardTest #test01CreditCardWithFutureDateCorrectlyStoresCardDataAndIsNotExpired stamp: 'VP 11/26/2020 12:42:18'!
+PASSED!
+
+!testRun: #CreditCardTest #test02CreditCardWithPastExpirationDateIsExpired stamp: 'VP 11/26/2020 12:42:18'!
+PASSED!
+
+!testRun: #CreditCardTest #test03CreditCardWithEmptyOwnerCanNotBeCreated stamp: 'VP 11/26/2020 12:42:18'!
+PASSED!
+
+!testRun: #CreditCardTest #test04CreditCardWithNonPositiveNumberCanNotBeCreated stamp: 'VP 11/26/2020 12:42:18'!
+PASSED!
+!CreditCardTest methodsFor: 'tests' stamp: 'VP 11/26/2020 12:42:39'!
+test05CreditCardWithNonIntegerNumberCanNotBeCreated
+
+	self should: [ CreditCard withNumber: 1.5 expiration: expirationDate previous owner: owner ]
+		raise: Error
+		withExceptionDo: [ :anError |
+			self assert: CreditCard invalidCardNumberErrorMessage equals: anError messageText.	
+		].! !
+
+!testRun: #CreditCardTest #test05CreditCardWithNonIntegerNumberCanNotBeCreated stamp: 'VP 11/26/2020 12:42:41'!
+FAILURE!
+!CreditCard class methodsFor: 'error messages -- private' stamp: 'VP 11/26/2020 12:42:59' prior: 50904078!
+invalidCardNumberErrorMessage
+	
+	^'Can not create credit card with the given number. Card numbers must be positive, integer numbers'.! !
+!CreditCard class methodsFor: 'error messages -- private' stamp: 'VP 11/26/2020 12:43:09' prior: 50904179!
+invalidCardNumberErrorMessage
+	
+	^'Can not create credit card with the given number. Card numbers must be positive, integers'.! !
+!CreditCard class methodsFor: 'instance creation' stamp: 'VP 11/26/2020 12:43:24' prior: 50904095!
+verifyValidCreditCardNumber: aCardNumber
+
+	aCardNumber < 0 ifTrue: [ self error: self invalidCardNumberErrorMessage ].
+	aCardNumber isInteger ifFalse: [ self error: self invalidCardNumberErrorMessage ].! !
+
+!testRun: #CreditCardTest #test01CreditCardWithFutureDateCorrectlyStoresCardDataAndIsNotExpired stamp: 'VP 11/26/2020 12:43:25'!
+PASSED!
+
+!testRun: #CreditCardTest #test02CreditCardWithPastExpirationDateIsExpired stamp: 'VP 11/26/2020 12:43:25'!
+PASSED!
+
+!testRun: #CreditCardTest #test03CreditCardWithEmptyOwnerCanNotBeCreated stamp: 'VP 11/26/2020 12:43:25'!
+PASSED!
+
+!testRun: #CreditCardTest #test04CreditCardWithNonPositiveNumberCanNotBeCreated stamp: 'VP 11/26/2020 12:43:25'!
+PASSED!
+
+!testRun: #CreditCardTest #test05CreditCardWithNonIntegerNumberCanNotBeCreated stamp: 'VP 11/26/2020 12:43:25'!
+PASSED!
+
+!testRun: #CashierTest #test01CheckoutOfEmptyCartIsNotAllowed stamp: 'VP 11/26/2020 12:43:28'!
+PASSED!
+
+!testRun: #CashierTest #test02CheckoutOfSingleProductCartWithValidCardSuccedsAndReturnsCorrectPrice stamp: 'VP 11/26/2020 12:43:28'!
+PASSED!
+
+!testRun: #CashierTest #test03CheckoutOfMultipleProductsCartWithValidCardSuccedsAndReturnsCorrectPrice stamp: 'VP 11/26/2020 12:43:28'!
+PASSED!
+
+!testRun: #CashierTest #test04CheckoutWithExpiredCreditCardFails stamp: 'VP 11/26/2020 12:43:28'!
+PASSED!
+
+!testRun: #CashierTest #test05CheckoutWithInvalidCreditCardFails stamp: 'VP 11/26/2020 12:43:28'!
+PASSED!
+
+!testRun: #CashierTest #test06CheckoutWithNonRespondingMerchantProcessorCreatesOrderFile stamp: 'VP 11/26/2020 12:43:28'!
+ERROR!
+
+!testRun: #CashierTest #test06CheckoutWithNonRespondingMerchantProcessorCreatesOrderFile stamp: 'VP 11/26/2020 12:43:28'!
+ERROR!
+
+!testRun: #CreditCardTest #test01CreditCardWithFutureDateCorrectlyStoresCardDataAndIsNotExpired stamp: 'VP 11/26/2020 12:43:34'!
+PASSED!
+
+!testRun: #CreditCardTest #test02CreditCardWithPastExpirationDateIsExpired stamp: 'VP 11/26/2020 12:43:34'!
+PASSED!
+
+!testRun: #CreditCardTest #test03CreditCardWithEmptyOwnerCanNotBeCreated stamp: 'VP 11/26/2020 12:43:34'!
+PASSED!
+
+!testRun: #CreditCardTest #test04CreditCardWithNonPositiveNumberCanNotBeCreated stamp: 'VP 11/26/2020 12:43:34'!
+PASSED!
+
+!testRun: #CreditCardTest #test05CreditCardWithNonIntegerNumberCanNotBeCreated stamp: 'VP 11/26/2020 12:43:34'!
+PASSED!
+
+!testRun: #CashierTest #test01CheckoutOfEmptyCartIsNotAllowed stamp: 'VP 11/26/2020 12:43:36'!
+PASSED!
+
+!testRun: #CashierTest #test02CheckoutOfSingleProductCartWithValidCardSuccedsAndReturnsCorrectPrice stamp: 'VP 11/26/2020 12:43:36'!
+PASSED!
+
+!testRun: #CashierTest #test03CheckoutOfMultipleProductsCartWithValidCardSuccedsAndReturnsCorrectPrice stamp: 'VP 11/26/2020 12:43:36'!
+PASSED!
+
+!testRun: #CashierTest #test04CheckoutWithExpiredCreditCardFails stamp: 'VP 11/26/2020 12:43:36'!
+PASSED!
+
+!testRun: #CashierTest #test05CheckoutWithInvalidCreditCardFails stamp: 'VP 11/26/2020 12:43:36'!
+PASSED!
+
+!testRun: #CashierTest #test06CheckoutWithNonRespondingMerchantProcessorCreatesOrderFile stamp: 'VP 11/26/2020 12:43:36'!
+ERROR!
+
+!testRun: #CashierTest #test06CheckoutWithNonRespondingMerchantProcessorCreatesOrderFile stamp: 'VP 11/26/2020 12:43:36'!
+ERROR!
+!CashierTest methodsFor: 'tests' stamp: 'VP 11/26/2020 12:44:28' prior: 50903954!
+test06CheckoutWithNonRespondingMerchantProcessorCreatesOrderFile
+
+	| cart cashier chargedAmount creditCard pendingTransactionsFile |
+	
+	chargedAmount := nil.
+	cart := self createCart.
+	cashier := self createCashierWithProcessorResponse: [ self error: Cashier processorTimeOutErrorMessage. ].
+	creditCard := CreditCard withNumber: cardNumber expiration: expirationDate owner: owner.
+	
+	cart add: validBookOf100.
+	
+	chargedAmount := cashier checkout: cart with: creditCard.
+	
+	self assert: 100 equals: chargedAmount.
+	
+	"Nota: estamos usando un Dictionary y una OrderedCollection porque no sabíamos manejar archivos."
+	pendingTransactionsFile := cashier pendingTransactionsLedger at: Cashier ledgerEntryNameForToday.
+	self assert: 2 equals: pendingTransactionsFile size.
+	self assert: (self addProductFileLineFor: validBookOf100 withQuantity: 1) equals: (pendingTransactionsFile at: 1).
+	self assert: (Cashier pendingCheckoutFileLineFor: creditCard) equals: (pendingTransactionsFile at: 2).! !
+
+!methodRemoval: CashierTest #test06CheckoutWithNonRespondingMerchantProcessorCreatesOrderFile stamp: 'VP 11/26/2020 14:07:51'!
+test06CheckoutWithNonRespondingMerchantProcessorCreatesOrderFile
+
+	| cart cashier chargedAmount creditCard pendingTransactionsFile |
+	
+	chargedAmount := nil.
+	cart := self createCart.
+	cashier := self createCashierWithProcessorResponse: [ self error: Cashier processorTimeOutErrorMessage. ].
+	creditCard := CreditCard withNumber: cardNumber expiration: expirationDate owner: owner.
+	
+	cart add: validBookOf100.
+	
+	chargedAmount := cashier checkout: cart with: creditCard.
+	
+	self assert: 100 equals: chargedAmount.
+	
+	"Nota: estamos usando un Dictionary y una OrderedCollection porque no sabíamos manejar archivos."
+	pendingTransactionsFile := cashier pendingTransactionsLedger at: Cashier ledgerEntryNameForToday.
+	self assert: 2 equals: pendingTransactionsFile size.
+	self assert: (self addProductFileLineFor: validBookOf100 withQuantity: 1) equals: (pendingTransactionsFile at: 1).
+	self assert: (Cashier pendingCheckoutFileLineFor: creditCard) equals: (pendingTransactionsFile at: 2).!
+
+!testRun: #CashierTest #test01CheckoutOfEmptyCartIsNotAllowed stamp: 'VP 11/26/2020 14:07:54'!
+PASSED!
+
+!testRun: #CashierTest #test02CheckoutOfSingleProductCartWithValidCardSuccedsAndReturnsCorrectPrice stamp: 'VP 11/26/2020 14:07:54'!
+PASSED!
+
+!testRun: #CashierTest #test03CheckoutOfMultipleProductsCartWithValidCardSuccedsAndReturnsCorrectPrice stamp: 'VP 11/26/2020 14:07:54'!
+PASSED!
+
+!testRun: #CashierTest #test04CheckoutWithExpiredCreditCardFails stamp: 'VP 11/26/2020 14:07:54'!
+PASSED!
+
+!testRun: #CashierTest #test05CheckoutWithInvalidCreditCardFails stamp: 'VP 11/26/2020 14:07:54'!
+PASSED!

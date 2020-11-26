@@ -140,15 +140,25 @@ createCashierWithCardValidation: aCardValidationBlock
 	
 	^Cashier withMerchantProcessor: (self createMerchantProcessorWithCardValidation: aCardValidationBlock).! !
 
+!CashierTest methodsFor: 'support' stamp: 'VP 11/22/2020 16:20:56'!
+createCashierWithProcessorResponse: aProcessorResponse
+	
+	^Cashier withMerchantProcessor: (self createMerchantProcessorWithResponse: aProcessorResponse).! !
+
 !CashierTest methodsFor: 'support' stamp: 'VP 11/21/2020 11:21:47'!
 createMerchantProcessor
 	
 	^self createMerchantProcessorWithCardValidation: [ :aCreditCard | true ].! !
 
-!CashierTest methodsFor: 'support' stamp: 'VP 11/22/2020 17:44:26'!
+!CashierTest methodsFor: 'support' stamp: 'VP 11/22/2020 16:17:10'!
 createMerchantProcessorWithCardValidation: aCardValidationBlock
 	
-	^MerchantProcessorSimulator newWithCardValidation: aCardValidationBlock.! !
+	^MerchantProcessorSimulator newWithCardValidation: aCardValidationBlock responseBehaviour: [ ].! !
+
+!CashierTest methodsFor: 'support' stamp: 'VP 11/22/2020 16:20:13'!
+createMerchantProcessorWithResponse: aProcessorResponse
+	
+	^MerchantProcessorSimulator newWithCardValidation: [ :aCreditCard | true ] responseBehaviour: aProcessorResponse.! !
 
 !CashierTest methodsFor: 'support' stamp: 'VP 11/19/2020 19:05:23'!
 itemNotSellByTheStore
@@ -303,6 +313,24 @@ test03CreditCardWithEmptyOwnerCanNotBeCreated
 			self assert: CreditCard emptyNameErrorMessage equals: anError messageText.	
 		].! !
 
+!CreditCardTest methodsFor: 'tests' stamp: 'VP 11/26/2020 12:41:40'!
+test04CreditCardWithNonPositiveNumberCanNotBeCreated
+
+	self should: [ CreditCard withNumber: -1 expiration: expirationDate previous owner: owner ]
+		raise: Error
+		withExceptionDo: [ :anError |
+			self assert: CreditCard invalidCardNumberErrorMessage equals: anError messageText.	
+		].! !
+
+!CreditCardTest methodsFor: 'tests' stamp: 'VP 11/26/2020 12:42:39'!
+test05CreditCardWithNonIntegerNumberCanNotBeCreated
+
+	self should: [ CreditCard withNumber: 1.5 expiration: expirationDate previous owner: owner ]
+		raise: Error
+		withExceptionDo: [ :anError |
+			self assert: CreditCard invalidCardNumberErrorMessage equals: anError messageText.	
+		].! !
+
 
 !CreditCardTest methodsFor: 'setUp/tearDown' stamp: 'VP 11/19/2020 19:54:20'!
 setUp
@@ -403,7 +431,7 @@ acceptingItemsOf: aCatalog
 
 !classDefinition: #Cashier category: 'TusLibros'!
 Object subclass: #Cashier
-	instanceVariableNames: 'productCatalog merchantProcessor'
+	instanceVariableNames: 'productCatalog merchantProcessor pendingTransactionLedger'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'TusLibros'!
@@ -414,13 +442,21 @@ initializeWith: aMerchantProcessor
 	merchantProcessor := aMerchantProcessor.! !
 
 
-!Cashier methodsFor: 'operation' stamp: 'VP 11/22/2020 17:43:56'!
+!Cashier methodsFor: 'operation' stamp: 'VP 11/22/2020 17:28:03'!
 checkout: aCart with: aCreditCard
 
 	self verifyCartNotEmpty: aCart.
 	self verifyCardNotExpired: aCreditCard.
 	
-	merchantProcessor transactionWith: aCreditCard ofAmount: aCart totalPrice.
+	[ merchantProcessor transactionWith: aCreditCard ofAmount: aCart totalPrice ]
+		on: TimedOut do: [
+			| ledgerFileLines |
+			
+			ledgerFileLines := aCart ledgerLines.
+			ledgerFileLines addLast: (self pendingCheckoutFileLineFor: aCreditCard).
+			
+			pendingTransactionLedger at: self ledgerEntryNameForToday put: ledgerFileLines.
+		].
 	
 	^aCart totalPrice.! !
 
@@ -434,6 +470,12 @@ verifyCardNotExpired: aCreditCard
 verifyCartNotEmpty: aCart
 
 	^ aCart isEmpty ifTrue: [ self error: self class emptyCartCheckoutErrorMessage ]! !
+
+
+!Cashier methodsFor: 'accessing' stamp: 'VP 11/22/2020 17:40:02'!
+pendingTransactionsLedger
+
+	^ pendingTransactionLedger copy.! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -461,6 +503,32 @@ processorTimeOutErrorMessage
 withMerchantProcessor: aMerchantProcessor
 
 	^self new initializeWith: aMerchantProcessor.! !
+
+
+!Cashier class methodsFor: 'operations -- private' stamp: 'VP 11/22/2020 17:38:09'!
+expirationDateFormatted: expirationDate
+
+	^expirationDate year number asString, '_', (self stringOf2DigitsFor: expirationDate monthOfYear monthNumber), '_', (self stringOf2DigitsFor: expirationDate dayNumber).! !
+
+!Cashier class methodsFor: 'operations -- private' stamp: 'VP 11/22/2020 17:36:40'!
+formattedDate: aDate.
+
+	^aDate year number asString, '_', (self stringOf2DigitsFor: aDate monthOfYear monthNumber), '_', (self stringOf2DigitsFor: aDate dayNumber).! !
+
+!Cashier class methodsFor: 'operations -- private' stamp: 'VP 11/22/2020 17:37:06'!
+ledgerEntryNameForToday
+
+	^'TUSLIBROS_INPUT_', (self formattedDate: GregorianDateTime now), '.csv'.! !
+
+!Cashier class methodsFor: 'operations -- private' stamp: 'VP 11/22/2020 17:38:03'!
+pendingCheckoutFileLineFor: aCreditCard
+	
+	^ '2,', aCreditCard number asString, ',', (self expirationDateFormatted: aCreditCard expiration), ',', aCreditCard owner.! !
+
+!Cashier class methodsFor: 'operations -- private' stamp: 'VP 11/22/2020 17:41:41'!
+stringOf2DigitsFor: aNumber
+
+	^aNumber printStringBase: 10 nDigits: 2.! !
 
 
 !classDefinition: #CreditCard category: 'TusLibros'!
@@ -509,10 +577,17 @@ verifyOwnerNotEmpty: anOwner
 
 	^ anOwner isEmpty ifTrue: [ self error: self emptyNameErrorMessage ]! !
 
-!CreditCard class methodsFor: 'instance creation' stamp: 'VP 11/21/2020 10:51:04'!
+!CreditCard class methodsFor: 'instance creation' stamp: 'VP 11/26/2020 12:43:24'!
+verifyValidCreditCardNumber: aCardNumber
+
+	aCardNumber < 0 ifTrue: [ self error: self invalidCardNumberErrorMessage ].
+	aCardNumber isInteger ifFalse: [ self error: self invalidCardNumberErrorMessage ].! !
+
+!CreditCard class methodsFor: 'instance creation' stamp: 'VP 11/26/2020 12:42:11'!
 withNumber: aNumber expiration: anExpirationDate owner: anOwner
 	
 	self verifyOwnerNotEmpty: anOwner.
+	self verifyValidCreditCardNumber: 	aNumber.
 
 	^self new initializeWithNumber: aNumber expiration: anExpirationDate owner: anOwner.! !
 
@@ -522,18 +597,24 @@ emptyNameErrorMessage
 
 	^'Owner can not be empty'.! !
 
+!CreditCard class methodsFor: 'error messages -- private' stamp: 'VP 11/26/2020 12:43:09'!
+invalidCardNumberErrorMessage
+	
+	^'Can not create credit card with the given number. Card numbers must be positive, integers'.! !
+
 
 !classDefinition: #MerchantProcessorSimulator category: 'TusLibros'!
 Object subclass: #MerchantProcessorSimulator
-	instanceVariableNames: 'cardValidationBlock'
+	instanceVariableNames: 'cardValidationBlock processorResponseBlock'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'TusLibros'!
 
-!MerchantProcessorSimulator methodsFor: 'initialization' stamp: 'VP 11/22/2020 17:44:37'!
-initializeWithCardValidation: aCardValidationBlock
+!MerchantProcessorSimulator methodsFor: 'initialization' stamp: 'VP 11/22/2020 16:16:39'!
+initializeWithCardValidation: aCardValidationBlock responseBehaviour: aProcessorResponseBlock
 
-	cardValidationBlock := aCardValidationBlock.! !
+	cardValidationBlock := aCardValidationBlock.
+	processorResponseBlock := aProcessorResponseBlock.! !
 
 
 !MerchantProcessorSimulator methodsFor: 'validation' stamp: 'VP 11/21/2020 11:21:08'!
@@ -555,7 +636,7 @@ transactionWith: aCreditCard ofAmount: anAmount
 MerchantProcessorSimulator class
 	instanceVariableNames: ''!
 
-!MerchantProcessorSimulator class methodsFor: 'instance creation' stamp: 'VP 11/22/2020 17:45:00'!
-newWithCardValidation: aCardValidationBlock
+!MerchantProcessorSimulator class methodsFor: 'instance creation' stamp: 'VP 11/22/2020 16:16:34'!
+newWithCardValidation: aCardValidationBlock responseBehaviour: aProcessorResponseBlock
 
-	^self new initializeWithCardValidation: aCardValidationBlock! !
+	^self new initializeWithCardValidation: aCardValidationBlock responseBehaviour: aProcessorResponseBlock.! !
